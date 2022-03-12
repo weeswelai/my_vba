@@ -1,34 +1,40 @@
 Sub select_download_file()
-    'ctrl + shift + q
     '计算文件
     Dim fso, file_name
 
 
     Set fso = CreateObject("scripting.filesystemobject") '创建并引用文件系统对象
 
-    file_name = Application.GetOpenFilename("ALL Files(*.*),*.*")  '调用文件窗口
+    file_name = Application.GetOpenFilename("ALL Files(*.*),*")  '调用文件窗口
 
     If file_name <> "False" Then
         Set file_ob = fso.GetFile(file_name)
         file_date_creatd = Left(file_ob.DateCreated, InStr(1, file_ob.DateCreated, " ") - 1)  '创建日期
         file_size = file_ob.Size                '文件大小(字节)
         '字节转Kb Mb Gb
-        If  (file_size == 0) Then
-            file_size = "0"
-        ElseIf (file_size > 0 And file_size < 1024) Then  
-            file_size = "Kb"
+        If (file_size = 0) Then
+            file_size = "0Kb"
+        ElseIf (file_size > 0 And file_size < 1024) Then
+            file_size = "1Kb"
         ElseIf (file_size >= 1024 And file_size < 1048576) Then     'Kb
             file_size = (file_size / 1024) + 0.1
             file_size2 = "Kb"
         ElseIf (file_size >= 1048576 And file_size <= 1073741824) Then 'Mb
             file_size = file_size / 1048576 + 0.1
             file_size2 = "Mb"
-        ElseIf (file_size >= 1073741824) Then  
+        ElseIf (file_size >= 1073741824) Then
             file_size = file_size / 1073741824 + 0.1
             file_size2 = "Gb"
         End If
-        file_size = Str(file_size)
-        file_size = Replace(Left(file_size, InStr(1, file_size, ".") + 1), " ", "") & file_size2    '去掉小数点之后的数字，加上单位
+
+        If (file_size = "0Kb" Or file_size = "1Kb") Then    '文件大于1kb
+            'pass
+        Else
+            file_size = Str(file_size)
+            file_size = Left(file_size, InStr(1, file_size, ".") + 1)   '保留小数点后一位数字
+            file_size = Replace(file_size, " ", "") & file_size2    '去掉类型转换后字符串头的空格，并加上单位
+        End If
+        
         file_path = file_ob.ParentFolder.Path  '父文件夹
         file_type = UCase(Right(file_name, Len(file_name) - InStrRev(file_name, ".")))  '获取文件后缀
         If (file_type = "7Z" Or file_type = "RAR" Or file_type = "ZIP" Or file_type = "TAR" Or file_type = "TZ" Or file_type = "GZ") Then
